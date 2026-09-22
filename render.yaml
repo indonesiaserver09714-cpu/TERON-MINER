@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: teron-miner
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: BOT_USERNAME
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: REFERRAL_REWARD
+        value: "100"
+      - key: MIN_WITHDRAW
+        value: "1000"
+      - key: PORT
+        value: "3000"
