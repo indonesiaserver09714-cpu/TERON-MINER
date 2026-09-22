@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TERON Admin</title><script src="https://telegram.org/js/telegram-web-app.js"></script><link rel="stylesheet" href="/style.css"></head>
+<body><div id="app"><header class="top"><div class="brand">TERON <span>ADMIN</span></div></header>
+<main class="screen">
+  <h1>Admin Panel</h1>
+  <div class="card"><h2>Add Task</h2>
+    <input id="title" placeholder="Task title">
+    <input id="url" placeholder="https://t.me/...">
+    <input id="reward" type="number" placeholder="Reward">
+    <button class="btn" id="add">Add Task</button>
+  </div>
+  <div class="card"><h2>Tasks</h2><div id="tasks">Loading...</div></div>
+  <div class="card"><h2>Withdrawals</h2><div id="withdrawals">Loading...</div></div>
+</main></div>
+<script>
+const tg=window.Telegram?.WebApp;if(tg){tg.ready();tg.expand();}
+const h=()=>tg?.initData||"";
+async function api(p,o={}){o.headers={...(o.headers||{}),"X-Telegram-Init-Data":h()};const r=await fetch(p,o);const d=await r.json();if(!r.ok)throw Error(d.error||"Error");return d}
+async function load(){
+ try{
+  let t=await api("/api/admin/tasks");document.getElementById("tasks").innerHTML=t.tasks.map(x=>`<div class="card"><b>${x.title}</b> — ${x.reward} TERON <button class="btn danger" onclick="del(${x.id})">Delete</button></div>`).join("");
+  let w=await api("/api/admin/withdrawals");document.getElementById("withdrawals").innerHTML=w.withdrawals.map(x=>`<div class="card"><b>#${x.id}</b> ${x.amount} TERON — ${x.status}<div class="muted">${x.wallet}</div><button class="btn green" onclick="status(${x.id},'approved')">Approve</button> <button class="btn danger" onclick="status(${x.id},'rejected')">Reject</button></div>`).join("")||"None";
+ }catch(e){document.body.innerHTML='<main class="screen"><div class="card">'+e.message+'</div></main>'}
+}
+async function del(id){await api("/api/admin/tasks/"+id,{method:"DELETE"});load()}
+async function status(id,s){await api("/api/admin/withdrawals/"+id+"/status",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:s})});load()}
+document.getElementById("add").onclick=async()=>{try{await api("/api/admin/tasks",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:title.value,url:url.value,reward:Number(reward.value)})});title.value=url.value=reward.value="";load()}catch(e){alert(e.message)}}
+load();
+</script></body></html>
